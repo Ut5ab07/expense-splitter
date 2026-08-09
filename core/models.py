@@ -41,5 +41,8 @@ class ExpenseSplit(models.Model):
         on_delete=models.CASCADE,
         related_name="splits"
     )
+    amount_owed = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
 
-    

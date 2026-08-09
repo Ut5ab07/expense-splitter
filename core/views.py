@@ -1,3 +1,96 @@
-from django.shortcuts import render
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.models import User
+from .models import Group
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
 
-# Create your views here.
+import logging
+logger = logging.getLogger(__name__)
+
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+
+        if form.is_valid():
+            try:
+                user = form.save()
+
+                logger.info(
+                    "New user registered: %s",
+                    user.username,
+                )
+
+                return redirect("login")
+
+            except Exception:
+                logger.exception(
+                    "Unexpected error during user registration."
+                )
+
+        else:
+            logger.warning(
+                "Registration failed due to invalid form data."
+            )
+
+    else:
+        form = UserCreationForm()
+
+    return render(
+        request,
+        "registration/register.html",
+        {
+            "form": form,
+        },
+    )
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(
+            request,
+            username=username,
+            password=password
+        )
+        if user is not None:
+            login(request,user)
+            return redirect("login")
+
+        return render(
+            request,
+            "registration/login.html",
+            {
+                "error": "Invalid username or password."
+            },
+        )
+
+    return render(
+        request,
+        "registration/login.html"
+    )
+
+def logout_view(request):
+    logout(request)
+    return redirect("home")
+
+def create_group(request):
+    if request.method == "POST":
+        group_name = request.POST.get("group_name")
+        group = Group.objects.create(
+            name=group_name,
+            created_by= request.user
+        )
+        group.members.add(request.user)
+
+        return redirect("group_list")
+
+    return render(request, "groups/create.html")
+
+def group_list(request):
+    groups = Group.objects.filter(members=request.user)
+    return render(
+        request,
+        "groups/list.html",
+        {
+            "groups":groups
+        }
+    )
