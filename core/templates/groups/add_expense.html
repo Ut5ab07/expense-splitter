@@ -1,0 +1,24 @@
+<h2>Add Expense</h2>
+
+<p>Group: {{ group.name }}</p>
+<p>Members:</p>
+{% for member in members %}
+    <li>{{ member.username }}</li>
+{% endfor %}
+<form method="POST">
+    {% csrf_token %}
+    <label for="amount">Amount:</label>
+    <input type="decimal" name="amount" id="amount" required><br>
+    <label for="paid_by">Paid by:</label>
+    <select name="paid_by" id="paid_by" required><br>
+        {% for member in members %}
+            <option value="{{ member.id }}">{{ member.username }}</option>
+        {% endfor %}
+    </select><br>
+    <label for="split_between">Split between:</label><br>
+    {% for member in members %}
+        <input type="checkbox" name="split_between" value="{{ member.id }}" id="split_between_{{ member.id }}">
+        <label for="split_between_{{ member.id }}">{{ member.username }}</label><br>
+    {% endfor %}
+    <button type="submit">Add Expense</button>
+</form>

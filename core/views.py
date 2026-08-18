@@ -1,6 +1,6 @@
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from .models import Group
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
@@ -124,4 +124,42 @@ def add_member(request, group_id):
     return render(request, "groups/add_member.html", {
         "group": group
     })
-        
+
+def add_expense(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    members = group.members.all()
+
+    if request.method == "POST":
+        amount = request.POST.get("amount")
+
+        paid_by = get_object_or_404(
+            User,
+            id=request.POST.get("paid_by")
+            )
+        split_between = request.POST.getlist("split_between")
+        split_users=[]
+
+        if not group.members.filter(id=paid_by.id).exists():
+            return HttpResponse(
+                f"{paid_by.username} is not a member of this group.",
+                status=400
+            )
+
+        for user_id in split_between:
+            user = get_object_or_404(User, id=user_id)
+
+            if not group.members.filter(id=user.id).exists():
+                return HttpResponse(
+                    f"{user.username} is not a member of this group.",
+                    status=400
+                )
+
+            split_users.append(user)
+
+    return render(request, "groups/add_expense.html", {
+        "group": group,
+        "members": members
+    },
+    )
+    
+
