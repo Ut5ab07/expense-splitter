@@ -1,5 +1,6 @@
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
+from django.http import HttpResponseForbidden
 from .models import Group
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
@@ -101,3 +102,26 @@ def group_detail(request, group_id):
     return render(request, "groups/detail.html",{
         "group": group
     })
+
+def add_member(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    if request.user != group.created_by:
+        return HttpResponseForbidden("You are not allowed to add members.")
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        try:
+            user = User.objects.get(username=username)
+            group.members.add(user)
+            return redirect("group_detail", group_id=group.id)
+        except User.DoesNotExist:
+            return render(request, "groups/detail.html", {
+                "group": group,
+                "error": "User does not exist."
+            })
+
+    return render(request, "groups/add_member.html", {
+        "group": group
+    })
+        

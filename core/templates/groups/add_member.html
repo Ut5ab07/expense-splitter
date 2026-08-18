@@ -1,0 +1,7 @@
+<h2>Add members</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="username">Username:</label>
+    <input type="text" name="username" id="username" required>
+    <button type="submit">Add Member</button>
+</form>
