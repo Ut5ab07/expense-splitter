@@ -2,7 +2,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from .models import Group
 from django.contrib.auth.forms import UserCreationForm
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
 import logging
 logger = logging.getLogger(__name__)
@@ -94,3 +94,10 @@ def group_list(request):
             "groups":groups
         }
     )
+
+def group_detail(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    return render(request, "groups/detail.html",{
+        "group": group
+    })

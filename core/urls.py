@@ -1,6 +1,6 @@
 from django.urls import path, include
 from .views import (
-    create_group, group_list, logout_view, register, login_view
+    create_group, group_list, logout_view, register, login_view, group_detail
 )
 
 urlpatterns = [
@@ -9,4 +9,5 @@ urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("groups/create/", create_group, name="create_group"),
+    path("groups/<int:group_id>/", group_detail, name="group_detail"),
 ]

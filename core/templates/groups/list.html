@@ -4,7 +4,11 @@
 
 <ul>
     {% for group in groups %}
-        <li>{{ group.name }}</li>
+        <li>
+    <a href="/groups/{{ group.id }}/">
+        {{ group.name }}
+    </a>
+</li>
     {% empty %}
         <li>No groups yet</li>
     {% endfor %}
