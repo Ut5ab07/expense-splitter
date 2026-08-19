@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from .models import Group
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
+from decimal import Decimal
 
 import logging
 logger = logging.getLogger(__name__)
@@ -130,7 +131,7 @@ def add_expense(request, group_id):
     members = group.members.all()
 
     if request.method == "POST":
-        amount = request.POST.get("amount")
+        amount = Decimal(request.POST.get("amount"))
 
         paid_by = get_object_or_404(
             User,
@@ -155,6 +156,13 @@ def add_expense(request, group_id):
                 )
 
             split_users.append(user)
+
+            amount = Decimal(amount)
+            share = amount / len(split_users)
+
+            print("Amount:", amount)
+            print("Split users:", [user.username for user in split_users])
+            print("Equal share:", share)
 
     return render(request, "groups/add_expense.html", {
         "group": group,
