@@ -1,7 +1,7 @@
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseForbidden
-from .models import Group
+from .models import Expense, Group, ExpenseSplit
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from decimal import Decimal
@@ -160,10 +160,13 @@ def add_expense(request, group_id):
             amount = Decimal(amount)
             share = amount / len(split_users)
 
-            print("Amount:", amount)
-            print("Split users:", [user.username for user in split_users])
-            print("Equal share:", share)
-
+            expense = Expense.objects.create(
+                group=group,
+                amount=amount,
+                paid_by=paid_by,
+            )
+            print(f"Expense created: {expense}")
+    
     return render(request, "groups/add_expense.html", {
         "group": group,
         "members": members

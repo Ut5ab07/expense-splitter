@@ -41,6 +41,11 @@ class ExpenseSplit(models.Model):
         on_delete=models.CASCADE,
         related_name="splits"
     )
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        related_name="expense_splits"
+    )
     amount_owed = models.DecimalField(
         max_digits=10,
         decimal_places=2
