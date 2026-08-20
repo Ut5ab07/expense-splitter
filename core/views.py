@@ -192,5 +192,52 @@ def add_expense(request, group_id):
             "members": members
         }
     )
+
+def calculate_balances(group):
+    balances = {}
+
+    for member in group.members.all():
+        balances[member.id] = Decimal(0)
+
+    expenses = Expense.objects.filter(group=group)
+
+    for expense in expenses:
+        paid_by = expense.paid_by
+        balances[paid_by.id] += expense.amount
+
+        splits = ExpenseSplit.objects.filter(expense=expense)
+
+        for split in splits:
+            user = split.user   
+            balances[user.id] -= split.amount_owed
+
+    return balances
     
+
+def simplify_debts(balances):
+    creditors = []
+    debtors = []
+
+    for user_id, balance in balances.items():
+        if balance > 0:
+            creditors.append((user_id, balance))
+        elif balance < 0:
+            debtors.append((user_id, -balance))
+
+    settlements = []
+
+    while creditors and debtors:
+        creditor_id, creditor_amount = creditors.pop()
+        debtor_id, debtor_amount = debtors.pop()
+
+        settlement_amount = min(creditor_amount, debtor_amount)
+
+        settlements.append((debtor_id, creditor_id, settlement_amount))
+
+        if creditor_amount > settlement_amount:
+            creditors.append((creditor_id, creditor_amount - settlement_amount))
+        if debtor_amount > settlement_amount:
+            debtors.append((debtor_id, debtor_amount - settlement_amount))
+
+    return settlements
 
