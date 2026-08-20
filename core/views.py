@@ -136,16 +136,21 @@ def add_expense(request, group_id):
         paid_by = get_object_or_404(
             User,
             id=request.POST.get("paid_by")
-            )
-        split_between = request.POST.getlist("split_between")
-        split_users=[]
+        )
 
+        split_between = request.POST.getlist("split_between")
+        print("Selected users:", split_between)
+
+        split_users = []
+
+        # Make sure the person who paid is a group member
         if not group.members.filter(id=paid_by.id).exists():
             return HttpResponse(
                 f"{paid_by.username} is not a member of this group.",
                 status=400
             )
 
+        # Validate all selected users
         for user_id in split_between:
             user = get_object_or_404(User, id=user_id)
 
@@ -157,20 +162,35 @@ def add_expense(request, group_id):
 
             split_users.append(user)
 
-            amount = Decimal(amount)
-            share = amount / len(split_users)
+        print("Split users:", [user.username for user in split_users])
 
-            expense = Expense.objects.create(
-                group=group,
-                amount=amount,
-                paid_by=paid_by,
+        # Calculate equal share
+        share = amount / len(split_users)
+
+        # Create the expense
+        expense = Expense.objects.create(
+            group=group,
+            amount=amount,
+            paid_by=paid_by,
+        )
+
+        # Create a split for every selected user
+        for user in split_users:
+            ExpenseSplit.objects.create(
+                expense=expense,
+                user=user,
+                amount_owed=share
             )
-            print(f"Expense created: {expense}")
-    
-    return render(request, "groups/add_expense.html", {
-        "group": group,
-        "members": members
-    },
+
+        return redirect("group_detail", group_id=group.id)
+
+    return render(
+        request,
+        "groups/add_expense.html",
+        {
+            "group": group,
+            "members": members
+        }
     )
     
 
