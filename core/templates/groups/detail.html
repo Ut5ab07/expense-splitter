@@ -1,10 +1,82 @@
-<h2>{{ group.name }}</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ group.name }}</title>
+</head>
 
-<h3>Members:</h3>
-<ul>
-    {% for member in group.members.all %}
-        <li>{{ member.username }}</li>
-    {% endfor %}
-</ul>
+<body>
 
-<a href="/groups/{{ group.id }}/add_member/">Add Member</a>
+    <h1>{{ group.name }}</h1>
+
+    <h2>Members</h2>
+
+    <ul>
+        {% for member in group.members.all %}
+            <li>{{ member.username }}</li>
+        {% empty %}
+            <li>No members in this group.</li>
+        {% endfor %}
+    </ul>
+
+
+    <h2>Balances</h2>
+
+    <ul>
+        {% for item in balance_details %}
+            <li>
+                <strong>{{ item.username }}</strong>:
+
+                {% if item.balance > 0 %}
+                    is owed ₹{{ item.balance }}
+
+                {% elif item.balance < 0 %}
+                    owes ₹{{ item.balance|stringformat:"s"|slice:"1:" }}
+
+                {% else %}
+                    settled
+                {% endif %}
+            </li>
+
+        {% empty %}
+            <li>No balances available.</li>
+        {% endfor %}
+    </ul>
+
+
+    <h2>Who Owes Whom</h2>
+
+    <ul>
+        {% for settlement in settlement_details %}
+            <li>
+                <strong>{{ settlement.debtor }}</strong>
+                owes
+                <strong>{{ settlement.creditor }}</strong>
+                ₹{{ settlement.amount }}
+            </li>
+
+        {% empty %}
+            <li>Everyone is settled.</li>
+        {% endfor %}
+    </ul>
+
+
+    <hr>
+
+    <a href="{% url 'add_expense' group.id %}">
+        Add Expense
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'add_member' group.id %}">
+        Add Member
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'group_list' %}">
+        Back to Groups
+    </a>
+
+</body>
+</html>
