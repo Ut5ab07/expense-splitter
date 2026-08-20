@@ -57,6 +57,12 @@
 </nav>
 
     <main class="container">
+        <a href="{% url 'group_list' %}"
+           class="back-button"
+           onclick="if (window.history.length > 1) { window.history.back(); return false; }">
+            &larr; Back
+        </a>
+
         {% block content %}
         {% endblock %}
     </main>
