@@ -1,7 +1,80 @@
-<h2>Add members</h2>
-<form method="post">
-    {% csrf_token %}
-    <label for="username">Username:</label>
-    <input type="text" name="username" id="username" required>
-    <button type="submit">Add Member</button>
-</form>
+{% extends "base.html" %}
+
+{% block title %}Add Members - {{ group.name }}{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <h1>Add Members</h1>
+
+        <p class="auth-subtitle">
+            Select the users you want to add to
+            <strong>{{ group.name }}</strong>.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+
+                <label class="members-label">
+                    Select Members
+                </label>
+
+                <div class="member-selection">
+
+                    {% for user in available_users %}
+
+                        <label class="member-option">
+
+                            <input
+                                type="checkbox"
+                                name="members"
+                                value="{{ user.id }}"
+                            >
+
+                            <span class="member-checkmark"></span>
+
+                            <span class="member-name">
+                                {{ user.username }}
+                            </span>
+
+                        </label>
+
+                    {% empty %}
+
+                        <div class="empty-selection">
+                            All available users are already members.
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+            {% if available_users %}
+                <button type="submit" class="button">
+                    Add Members
+                </button>
+            {% endif %}
+
+        </form>
+
+        <div class="auth-footer">
+
+            <a href="{% url 'group_detail' group.id %}">
+                ← Back to {{ group.name }}
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,7 +1,49 @@
-<h2>Create Group</h2>
+{% extends "base.html" %}
 
-<form method="POST">
-    {% csrf_token %}
-    <input type="text" name="group_name" placeholder="Group name" required>
-    <button type="submit">Create</button>
-</form>
+{% block title %}Create Group - Expense Splitter{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <h1>Create a Group</h1>
+
+        <p class="auth-subtitle">
+            Create a group to start sharing and tracking expenses.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="group_name">Group name</label>
+
+                <input
+                    type="text"
+                    id="group_name"
+                    name="group_name"
+                    placeholder="e.g. Madrid Trip"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="button">
+                Create Group
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+            <a href="{% url 'group_list' %}">
+                ← Back to Groups
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

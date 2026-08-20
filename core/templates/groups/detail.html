@@ -1,82 +1,241 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ group.name }}</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}{{ group.name }} - Expense Splitter{% endblock %}
 
-    <h1>{{ group.name }}</h1>
+{% block content %}
 
-    <h2>Members</h2>
+<!-- Header -->
 
-    <ul>
+<div class="page-header">
+
+    <div>
+        <h1>{{ group.name }}</h1>
+        <p>Manage members, expenses, and settlements.</p>
+    </div>
+
+    <div>
+        <a href="{% url 'add_member' group.id %}" class="button">
+            + Add Member
+        </a>
+
+        <a href="{% url 'add_expense' group.id %}" class="button">
+            + Add Expense
+        </a>
+    </div>
+
+</div>
+
+
+<!-- Members -->
+
+<div class="card section">
+
+    <h2 class="section-title">Members</h2>
+
+    <ul class="member-list">
+
         {% for member in group.members.all %}
-            <li>{{ member.username }}</li>
+
+            <li>
+                {{ member.username }}
+            </li>
+
         {% empty %}
+
             <li>No members in this group.</li>
+
         {% endfor %}
+
     </ul>
 
+</div>
 
-    <h2>Balances</h2>
 
-    <ul>
-        {% for item in balance_details %}
-            <li>
-                <strong>{{ item.username }}</strong>:
+<!-- Balances -->
 
-                {% if item.balance > 0 %}
-                    is owed ₹{{ item.balance }}
+<div class="card section">
 
-                {% elif item.balance < 0 %}
-                    owes ₹{{ item.balance|stringformat:"s"|slice:"1:" }}
+    <h2 class="section-title">Balances</h2>
+
+    <div class="balance-list">
+
+        {% for user_id, balance in balances.items %}
+
+            <div class="balance-card">
+
+                {% for member in group.members.all %}
+
+                    {% if member.id == user_id %}
+
+                        <div class="balance-name">
+                            {{ member.username }}
+                        </div>
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                {% if balance > 0 %}
+
+                    <div class="balance-positive">
+                        Gets back ₹{{ balance }}
+                    </div>
+
+                {% elif balance < 0 %}
+
+                    <div class="balance-negative">
+                        Owes ₹{{ balance|stringformat:"s"|slice:"1:" }}
+                    </div>
 
                 {% else %}
-                    settled
+
+                    <div class="balance-zero">
+                        Settled
+                    </div>
+
                 {% endif %}
-            </li>
 
-        {% empty %}
-            <li>No balances available.</li>
+            </div>
+
         {% endfor %}
-    </ul>
+
+    </div>
+
+</div>
 
 
-    <h2>Who Owes Whom</h2>
+<!-- Settlements -->
 
-    <ul>
-        {% for settlement in settlement_details %}
-            <li>
-                <strong>{{ settlement.debtor }}</strong>
-                owes
-                <strong>{{ settlement.creditor }}</strong>
-                ₹{{ settlement.amount }}
-            </li>
+<div class="card section">
 
-        {% empty %}
-            <li>Everyone is settled.</li>
-        {% endfor %}
-    </ul>
+    <h2 class="section-title">Suggested Settlements</h2>
+
+    {% if settlements %}
+
+        <ul class="settlement-list">
+
+            {% for debtor_id, creditor_id, amount in settlements %}
+
+                <li class="settlement-item">
+
+                    {% for member in group.members.all %}
+
+                        {% if member.id == debtor_id %}
+                            <strong>{{ member.username }}</strong>
+                        {% endif %}
+
+                    {% endfor %}
+
+                    pays
+
+                    {% for member in group.members.all %}
+
+                        {% if member.id == creditor_id %}
+                            <strong>{{ member.username }}</strong>
+                        {% endif %}
+
+                    {% endfor %}
+
+                    <span class="settlement-amount">
+                        ₹{{ amount }}
+                    </span>
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <div class="empty-state">
+            Everyone is settled up.
+        </div>
+
+    {% endif %}
+
+</div>
 
 
-    <hr>
+<!-- Expenses -->
 
-    <a href="{% url 'add_expense' group.id %}">
-        Add Expense
-    </a>
+<div class="card section">
 
-    <br><br>
+    <div class="page-header">
 
-    <a href="{% url 'add_member' group.id %}">
-        Add Member
-    </a>
+        <h2 class="section-title">Expenses</h2>
 
-    <br><br>
+        <a href="{% url 'add_expense' group.id %}" class="button">
+            + Add Expense
+        </a>
 
-    <a href="{% url 'group_list' %}">
-        Back to Groups
-    </a>
+    </div>
 
-</body>
-</html>
+
+    {% if group.expense_set.all %}
+
+        <ul class="expense-list">
+
+            {% for expense in group.expense_set.all %}
+
+                <li class="expense-item">
+
+                    <div class="expense-header">
+
+                        <div>
+                            <div class="expense-amount">
+                                ₹{{ expense.amount }}
+                            </div>
+
+                            <div class="expense-payer">
+                                Paid by {{ expense.paid_by.username }}
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <ul class="split-list">
+
+                        {% for split in expense.expensesplit_set.all %}
+
+                            <li>
+                                {{ split.user.username }}
+                                owes ₹{{ split.amount_owed }}
+                            </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <p>No expenses have been added yet.</p>
+
+            <a href="{% url 'add_expense' group.id %}" class="button">
+                Add First Expense
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- Back -->
+
+<a href="{% url 'group_list' %}">
+    ← Back to Groups
+</a>
+
+{% endblock %}

@@ -5,6 +5,7 @@ from .models import Expense, Group, ExpenseSplit
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from decimal import Decimal
+from django.contrib.auth.decorators import login_required
 
 import logging
 logger = logging.getLogger(__name__)
@@ -72,7 +73,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect("home")
+    return redirect("login")
 
 def create_group(request):
     if request.method == "POST":
@@ -124,35 +125,41 @@ def group_detail(request, group_id):
                     "amount": amount
                 }
             )
+        expenses  = Expense.objects.filter(group=group).order_by("-id")
 
     return render(request, "groups/detail.html",{
         "group": group,
         "balance_details": balance_details,
-        "settlement_details": settlement_details
+        "settlement_details": settlement_details,
+        "expenses": expenses
     })
 
 def add_member(request, group_id):
     group = get_object_or_404(Group, id=group_id)
 
-    if request.user != group.created_by:
-        return HttpResponseForbidden("You are not allowed to add members.")
+    available_users = User.objects.exclude(
+        id__in=group.members.values_list("id", flat=True)
+    )
 
     if request.method == "POST":
-        username = request.POST.get("username")
-        try:
-            user = User.objects.get(username=username)
+        selected_user_ids = request.POST.getlist("members")
+
+        for user_id in selected_user_ids:
+            user = get_object_or_404(User, id=user_id)
             group.members.add(user)
-            return redirect("group_detail", group_id=group.id)
-        except User.DoesNotExist:
-            return render(request, "groups/detail.html", {
-                "group": group,
-                "error": "User does not exist."
-            })
 
-    return render(request, "groups/add_member.html", {
-        "group": group
-    })
+        return redirect("group_detail", group_id=group.id)
 
+    return render(
+        request,
+        "groups/add_member.html",
+        {
+            "group": group,
+            "available_users": available_users,
+        },
+    )
+
+@login_required
 def add_expense(request, group_id):
     group = get_object_or_404(Group, id=group_id)
     members = group.members.all()

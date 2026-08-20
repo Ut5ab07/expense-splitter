@@ -1,15 +1,63 @@
-<h2>Your Groups</h2>
+{% extends "base.html" %}
 
-<a href="/groups/create/">Create New Group</a>
+{% block title %}My Groups - Expense Splitter{% endblock %}
 
-<ul>
-    {% for group in groups %}
-        <li>
-    <a href="/groups/{{ group.id }}/">
-        {{ group.name }}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>My Groups</h1>
+        <p>Manage your expense groups and track shared expenses.</p>
+    </div>
+
+    <a href="{% url 'create_group' %}" class="button">
+        + Create Group
     </a>
-</li>
-    {% empty %}
-        <li>No groups yet</li>
+</div>
+
+
+{% if groups %}
+
+<div class="group-grid">
+
+    {% for group in groups %}
+
+    <div class="group-card">
+
+        <h2>{{ group.name }}</h2>
+
+        <p>
+            {{ group.members.count }} member{{ group.members.count|pluralize }}
+        </p>
+
+        <div class="group-actions">
+            <a href="{% url 'group_detail' group.id %}" class="button">
+                View Group
+            </a>
+        </div>
+
+    </div>
+
     {% endfor %}
-</ul>
+
+</div>
+
+{% else %}
+
+<div class="card empty-state">
+
+    <h2>No groups yet</h2>
+
+    <p>
+        Create your first group to start splitting expenses.
+    </p>
+
+    <a href="{% url 'create_group' %}" class="button">
+        Create Group
+    </a>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
