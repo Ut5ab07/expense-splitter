@@ -18,9 +18,6 @@
             + Add Member
         </a>
 
-        <a href="{% url 'add_expense' group.id %}" class="button">
-            + Add Expense
-        </a>
     </div>
 
 </div>
@@ -53,92 +50,58 @@
 
 <!-- Balances -->
 
+<!-- Balances -->
+
 <div class="card section">
-
     <h2 class="section-title">Balances</h2>
-
     <div class="balance-list">
 
-        {% for user_id, balance in balances.items %}
+        {% for item in balance_details %}
 
             <div class="balance-card">
 
-                {% for member in group.members.all %}
+                <div class="balance-name">
+                    {{ item.username }}
+                </div>
 
-                    {% if member.id == user_id %}
-
-                        <div class="balance-name">
-                            {{ member.username }}
-                        </div>
-
-                    {% endif %}
-
-                {% endfor %}
-
-
-                {% if balance > 0 %}
-
+                {% if item.balance > 0 %}
                     <div class="balance-positive">
-                        Gets back ₹{{ balance }}
+                        Gets back ₹{{ item.balance }}
                     </div>
-
-                {% elif balance < 0 %}
-
+                {% elif item.balance < 0 %}
                     <div class="balance-negative">
-                        Owes ₹{{ balance|stringformat:"s"|slice:"1:" }}
-                    </div>
-
+                        Owes ₹{{ item.balance|stringformat:"s"|slice:"1:" }}
+                   </div>
                 {% else %}
-
                     <div class="balance-zero">
                         Settled
                     </div>
-
                 {% endif %}
-
             </div>
+        {% empty %}
 
+            <div class="empty-state">
+                No balance information available.
+            </div>
         {% endfor %}
-
     </div>
-
 </div>
 
 
 <!-- Settlements -->
 
 <div class="card section">
-
     <h2 class="section-title">Suggested Settlements</h2>
 
-    {% if settlements %}
-
+    {% if settlement_details %}
         <ul class="settlement-list">
-
-            {% for debtor_id, creditor_id, amount in settlements %}
-
+            {% for settlement in settlement_details %}
                 <li class="settlement-item">
-
-                    {% for member in group.members.all %}
-
-                        {% if member.id == debtor_id %}
-                            <strong>{{ member.username }}</strong>
-                        {% endif %}
-
-                    {% endfor %}
-
-                    pays
-
-                    {% for member in group.members.all %}
-
-                        {% if member.id == creditor_id %}
-                            <strong>{{ member.username }}</strong>
-                        {% endif %}
-
-                    {% endfor %}
-
+                    <strong>{{ settlement.debtor }}</strong>
+                    <span>pays</span>
+                    <strong>{{ settlement.creditor }}</strong>
                     <span class="settlement-amount">
-                        ₹{{ amount }}
+                        Rs.{{ settlement.amount }}
                     </span>
 
                 </li>
@@ -160,6 +123,8 @@
 
 <!-- Expenses -->
 
+<!-- Expenses -->
+
 <div class="card section">
 
     <div class="page-header">
@@ -172,18 +137,18 @@
 
     </div>
 
-
-    {% if group.expense_set.all %}
+    {% if expenses %}
 
         <ul class="expense-list">
 
-            {% for expense in group.expense_set.all %}
+            {% for expense in expenses %}
 
                 <li class="expense-item">
 
                     <div class="expense-header">
 
                         <div>
+
                             <div class="expense-amount">
                                 ₹{{ expense.amount }}
                             </div>
@@ -191,10 +156,10 @@
                             <div class="expense-payer">
                                 Paid by {{ expense.paid_by.username }}
                             </div>
+
                         </div>
 
                     </div>
-
 
                     <ul class="split-list">
 
@@ -218,13 +183,7 @@
     {% else %}
 
         <div class="empty-state">
-
             <p>No expenses have been added yet.</p>
-
-            <a href="{% url 'add_expense' group.id %}" class="button">
-                Add First Expense
-            </a>
-
         </div>
 
     {% endif %}

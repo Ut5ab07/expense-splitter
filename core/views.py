@@ -101,38 +101,49 @@ def group_list(request):
 def group_detail(request, group_id):
     group = get_object_or_404(Group, id=group_id)
 
+    # Calculate balances
     balances = calculate_balances(group)
-    settlements = simplify_debts(balances)
 
     balance_details = []
+
     for user_id, balance in balances.items():
         user = User.objects.get(id=user_id)
-        balance_details.append(
-            {
-                "username": user.username,
-                "balance": balance
-            }
-        )
 
-        settlement_details = []
-        for debtor_id, creditor_id, amount in settlements:
-            debtor = User.objects.get(id=debtor_id)
-            creditor = User.objects.get(id=creditor_id)
-            settlement_details.append(
-                {
-                    "debtor": debtor.username,
-                    "creditor": creditor.username,
-                    "amount": amount
-                }
-            )
-        expenses  = Expense.objects.filter(group=group).order_by("-id")
+        balance_details.append({
+            "username": user.username,
+            "balance": balance,
+        })
 
-    return render(request, "groups/detail.html",{
-        "group": group,
-        "balance_details": balance_details,
-        "settlement_details": settlement_details,
-        "expenses": expenses
-    })
+    # Calculate settlements
+    settlements = simplify_debts(balances)
+
+    settlement_details = []
+
+    for debtor_id, creditor_id, amount in settlements:
+        debtor = User.objects.get(id=debtor_id)
+        creditor = User.objects.get(id=creditor_id)
+
+        settlement_details.append({
+            "debtor": debtor.username,
+            "creditor": creditor.username,
+            "amount": amount,
+        })
+
+    # Get expenses
+    expenses = Expense.objects.filter(
+        group=group
+    ).order_by("-id")
+
+    return render(
+        request,
+        "groups/detail.html",
+        {
+            "group": group,
+            "balance_details": balance_details,
+            "settlement_details": settlement_details,
+            "expenses": expenses,
+        },
+    )
 
 def add_member(request, group_id):
     group = get_object_or_404(Group, id=group_id)

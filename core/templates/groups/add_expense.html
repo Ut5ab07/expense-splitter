@@ -1,24 +1,131 @@
-<h2>Add Expense</h2>
+{% extends "base.html" %}
 
-<p>Group: {{ group.name }}</p>
-<p>Members:</p>
-{% for member in members %}
-    <li>{{ member.username }}</li>
-{% endfor %}
-<form method="POST">
-    {% csrf_token %}
-    <label for="amount">Amount:</label>
-    <input type="decimal" name="amount" id="amount" required><br>
-    <label for="paid_by">Paid by:</label>
-    <select name="paid_by" id="paid_by" required><br>
-        {% for member in members %}
-            <option value="{{ member.id }}">{{ member.username }}</option>
-        {% endfor %}
-    </select><br>
-    <label for="split_between">Split between:</label><br>
-    {% for member in members %}
-        <input type="checkbox" name="split_between" value="{{ member.id }}" id="split_between_{{ member.id }}">
-        <label for="split_between_{{ member.id }}">{{ member.username }}</label><br>
-    {% endfor %}
-    <button type="submit">Add Expense</button>
-</form>
+{% block title %}Add Expense - {{ group.name }}{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <h1>Add Expense</h1>
+
+        <p class="auth-subtitle">
+            Add a shared expense to <strong>{{ group.name }}</strong>.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <!-- Amount -->
+
+            <div class="form-group">
+
+                <label for="amount">
+                    Amount
+                </label>
+
+                <input
+                    type="number"
+                    name="amount"
+                    id="amount"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="e.g. 120.00"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Paid By -->
+
+            <div class="form-group">
+
+                <label for="paid_by">
+                    Paid By
+                </label>
+
+                <select
+                    name="paid_by"
+                    id="paid_by"
+                    required
+                >
+
+                    <option value="" disabled selected>
+                        Select who paid
+                    </option>
+
+                    {% for member in members %}
+
+                        <option value="{{ member.id }}">
+                            {{ member.username }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Split Between -->
+
+            <div class="form-group">
+
+                <label class="members-label">
+                    Split Between
+                </label>
+
+                <p class="helptext">
+                    Select everyone who should share this expense.
+                </p>
+
+                <div class="member-selection">
+
+                    {% for member in members %}
+
+                        <label class="member-option">
+
+                            <input
+                                type="checkbox"
+                                name="split_between"
+                                value="{{ member.id }}"
+                            >
+
+                            <span class="member-checkmark"></span>
+
+                            <span class="member-name">
+                                {{ member.username }}
+                            </span>
+
+                        </label>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <button type="submit" class="button">
+                Add Expense
+            </button>
+
+        </form>
+
+
+        <div class="auth-footer">
+
+            <a href="{% url 'group_detail' group.id %}">
+                ← Back to {{ group.name }}
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
